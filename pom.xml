@@ -13,6 +13,13 @@
         <javac.target>1.8</javac.target>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -40,7 +47,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>com.stephenfox.pumpkin.Pumpkin</Main-Class>
+                                        <Main-Class>Main</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>

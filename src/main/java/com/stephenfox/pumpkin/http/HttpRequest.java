@@ -1,5 +1,7 @@
 package com.stephenfox.pumpkin.http;
 
+import java.io.OutputStream;
+
 public interface HttpRequest {
   String getVersion();
 
@@ -10,4 +12,6 @@ public interface HttpRequest {
   String getResource();
 
   String getBody();
+
+  OutputStream getConnection();
 }

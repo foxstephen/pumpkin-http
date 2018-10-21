@@ -17,7 +17,21 @@ public class PumpkinHttpHeaders implements HttpHeaders {
   }
 
   @Override
-  public void put(String header, String value) {
+  public HttpHeaders put(String header, String value) {
     headersMap.put(header, value);
+    return this;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder builder = new StringBuilder();
+    for (Map.Entry<String, String> header : headersMap.entrySet()) {
+      builder.append(header.getKey());
+      builder.append(":");
+      builder.append(header.getValue());
+      builder.append("\r\n");
+    }
+
+    return builder.toString();
   }
 }
