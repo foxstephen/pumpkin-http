@@ -8,8 +8,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class PumpkinHttpSocketListener implements HttpSocketListener {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpSocketListener.class);
   private final int port;
   private final String host;
   private final Queue<HttpRequest> sharedRequestQueue;
@@ -22,26 +26,25 @@ class PumpkinHttpSocketListener implements HttpSocketListener {
 
   @Override
   public void listen() {
-    try {
-      final ServerSocket serverSocket = new ServerSocket(port);
 
+    try (final ServerSocket serverSocket = new ServerSocket(port)) {
       while (true) {
-        try {
-          final Socket socket = serverSocket.accept();
-          final BufferedReader reader =
-              new BufferedReader(new InputStreamReader(socket.getInputStream()));
-          final OutputStream outputStream = socket.getOutputStream();
-          try {
-            sharedRequestQueue.add(PumpkinHttpRequest.from(reader, outputStream));
-          } catch (IllegalArgumentException e) {
-            HttpResponse.response400(new BadRequest(outputStream));
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+        final Socket socket = serverSocket.accept();
+        final BufferedReader reader =
+            new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        final OutputStream outputStream = socket.getOutputStream();
+        parseRequest(outputStream, reader);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.error("", e);
+    }
+  }
+
+  private void parseRequest(OutputStream outputStream, BufferedReader reader) {
+    try {
+      sharedRequestQueue.add(PumpkinHttpRequest.from(reader, outputStream));
+    } catch (InvalidHttpRequest e) {
+      LOGGER.trace("", e);
     }
   }
 

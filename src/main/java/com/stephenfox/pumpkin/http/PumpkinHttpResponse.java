@@ -1,16 +1,17 @@
 package com.stephenfox.pumpkin.http;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 class PumpkinHttpResponse implements HttpResponse {
-  private final OutputStream outputStream;
+  private final DataOutputStream outputStream;
   private HttpHeaders headers;
   private String body;
   private int code;
 
   PumpkinHttpResponse(HttpRequest request) {
-    this.outputStream = request.getConnection();
+    this.outputStream = new DataOutputStream(request.getConnection());
   }
 
   @Override
@@ -34,17 +35,16 @@ class PumpkinHttpResponse implements HttpResponse {
   @Override
   public void send() {
     try {
-      outputStream.write(prepare());
+      outputStream.writeBytes(prepare());
       outputStream.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  private byte[] prepare() {
+  private String prepare() {
     addDefaultHeaders();
-    return ("HTTP/1.1 " + code + " " + reason(code) + "\r\n" + headers + "\r\n\r\n" + body)
-        .getBytes();
+    return ("HTTP/1.1 " + code + " " + reason(code) + "\r\n" + headers + "\r\n" + body);
   }
 
   private static String reason(int code) {
@@ -63,9 +63,9 @@ class PumpkinHttpResponse implements HttpResponse {
     }
     if (headers.get("Content-Length") == null) {
       if (body != null) {
-        headers.put("Content-Length", String.valueOf(body.length()));
+        headers.set("Content-Length", String.valueOf(body.length()));
       } else {
-        headers.put("Content-Length", String.valueOf(0));
+        headers.set("Content-Length", String.valueOf(0));
       }
     }
   }

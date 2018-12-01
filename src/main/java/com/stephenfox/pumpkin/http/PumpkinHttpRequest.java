@@ -6,16 +6,12 @@ import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class PumpkinHttpRequest implements HttpRequest {
-  private static final String METHOD = "method";
-  private static final String RESOURCE = "resource";
-  private static final String VERSION = "version";
-  private static final String KEY = "key";
-  private static final String VALUE = "value";
-  private static final Pattern httpMethodResourceVersion =
-      Pattern.compile(
-          "^(?<method>OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT)\\s(?<resource>\\/\\S*)\\s(?<version>HTTP\\/\\d.\\d)$");
   private static final Pattern httpHeader = Pattern.compile("(?<key>\\S+):\\s*(?<value>.+)");
+  private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpRequest.class);
   private final String version;
   private final HttpHeaders headers;
   private final HttpMethod method;
@@ -27,6 +23,7 @@ class PumpkinHttpRequest implements HttpRequest {
     String body = null;
     String resource = null;
     HttpMethod method = null;
+    // TODO: This inits an empty HashMap for each request even if there's no headers.
     HttpHeaders headers = new PumpkinHttpHeaders();
     String version = null;
 
@@ -34,7 +31,7 @@ class PumpkinHttpRequest implements HttpRequest {
       // Parse the request line.
       final String requestLine = reader.readLine();
       if (requestLine == null || requestLine.isEmpty()) {
-        throw new IllegalArgumentException("Invalid request line"); // TODO: Proper exception.
+        throw new InvalidHttpRequest("Invalid request line");
       }
       final String[] parsedRequestLine = requestLine.split(" "); // TODO: precompile regex?
       if (parsedRequestLine.length != 3) {
@@ -44,12 +41,13 @@ class PumpkinHttpRequest implements HttpRequest {
       resource = parsedRequestLine[1];
       version = parsedRequestLine[2];
 
-      // Parse the headers. This assumes header always present?
+      // Parse the headers.
+      // TODO: This assumes header always present?
       String header = reader.readLine();
       while (header.length() > 0) {
         final Matcher matcher = httpHeader.matcher(header);
         if (matcher.matches()) {
-          headers.put(matcher.group("key"), matcher.group("value"));
+          headers.set(matcher.group("key"), matcher.group("value"));
         }
 
         header = reader.readLine();
@@ -69,7 +67,7 @@ class PumpkinHttpRequest implements HttpRequest {
       }
 
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.error("", e);
     }
 
     return new PumpkinHttpRequest(outputStream, version, method, headers, resource, body);

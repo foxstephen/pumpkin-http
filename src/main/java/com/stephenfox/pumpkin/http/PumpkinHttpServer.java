@@ -23,26 +23,25 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PumpkinHttpServer implements HttpServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpServer.class);
-  private static final int THREADS = 1;
+  private static final int THREADS = 4;
   private final ExecutorService threadPool;
-  private final Queue<HttpRequest> requests;
   private final int port;
   private final String host;
   private final BlockingQueue<HttpRequest> sharedRequestQueue;
@@ -54,39 +53,27 @@ public class PumpkinHttpServer implements HttpServer {
     this.host = host;
     this.port = port;
     this.handlerClass = handlerClass;
-    this.resourceHandlers = new HashMap<>();
-    this.threadPool = Executors.newCachedThreadPool();
-    this.requests = new ArrayDeque<>();
-    this.sharedRequestQueue = new LinkedBlockingDeque<>();
+    this.resourceHandlers = new EnumMap<>(HttpMethod.class);
+    this.threadPool = Executors.newCachedThreadPool(new PumpkinThreadFactory());
+    this.sharedRequestQueue = new LinkedBlockingQueue<>();
     this.parseHandler();
   }
 
   public void start() {
+    LOGGER.info("Starting with {} thread(s); Listening on {}:{}", THREADS, host, port);
+
     for (int i = 0; i < THREADS; i++) {
-      final HttpSocketListener listener =
-          new PumpkinHttpSocketListener(host, port, sharedRequestQueue);
-      threadPool.submit(listener::listen);
+      final HttpRequestProcessor requestProcessor =
+          new PumpkinHttpRequestProcessor(sharedRequestQueue, instance, resourceHandlers);
+      threadPool.execute(requestProcessor::run);
     }
-    LOGGER.info("Starting {} thread(s) to listen on {}:{}", THREADS, host, port);
 
-    while (true) {
-      try {
-        final HttpRequest request = sharedRequestQueue.take();
-        LOGGER.debug("Received request " + request);
-
-        final Method method = resourceHandlers.get(request.getMethod()).get(request.getResource());
-        if (method == null) {
-          HttpResponse.response404(request).send();
-        } else {
-          method.invoke(instance, request);
-        }
-
-      } catch (InterruptedException | IllegalAccessException | InvocationTargetException e) {
-        e.printStackTrace();
-      }
-    }
+    final HttpSocketListener listener =
+        new PumpkinHttpSocketListener(host, port, sharedRequestQueue);
+    listener.listen();
   }
 
+  // Parse all endpoints from the handler class.
   private void parseHandler() {
     try {
       final Constructor<?> constructor = handlerClass.getConstructor(null);
@@ -95,7 +82,7 @@ public class PumpkinHttpServer implements HttpServer {
         | IllegalAccessException
         | InstantiationException
         | InvocationTargetException e) {
-      e.printStackTrace();
+      LOGGER.error("", e);
     }
 
     for (HttpMethod httpMethod : HttpMethod.values()) {
@@ -143,6 +130,16 @@ public class PumpkinHttpServer implements HttpServer {
               "Unknown http method for annotation class" + annotation);
         }
       }
+    }
+  }
+
+  private class PumpkinThreadFactory implements ThreadFactory {
+    private static final String THREAD_PREFIX = "pumpkin-thread-";
+    private int numberOfThreads = 0;
+
+    @Override
+    public Thread newThread(Runnable r) {
+      return new Thread(r, THREAD_PREFIX + (++numberOfThreads));
     }
   }
 }

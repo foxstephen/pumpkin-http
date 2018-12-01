@@ -13,12 +13,12 @@ public class PumpkinHttpHeaders implements HttpHeaders {
 
   @Override
   public String get(String header) {
-    return headersMap.get(header.toLowerCase());
+    return headersMap.get(header);
   }
 
   @Override
-  public HttpHeaders put(String header, String value) {
-    headersMap.put(header.toLowerCase(), value);
+  public HttpHeaders set(String header, String value) {
+    headersMap.put(header, value);
     return this;
   }
 

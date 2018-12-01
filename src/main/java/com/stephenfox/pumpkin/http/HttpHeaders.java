@@ -3,5 +3,5 @@ package com.stephenfox.pumpkin.http;
 public interface HttpHeaders {
   String get(String header);
 
-  HttpHeaders put(String header, String value);
+  HttpHeaders set(String header, String value);
 }

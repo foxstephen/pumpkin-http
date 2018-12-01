@@ -18,7 +18,20 @@ public class Main {
   @Get(resource = "/")
   public void handleGet(HttpRequest request) {
     LOGGER.debug("Handler received request {} ", request);
-    HttpResponse.forRequest(request).setBody("Hello World!").setCode(200).send();
+    HttpResponse.forRequest(request)
+        .setBody(
+            "<!DOCTYPE html>\n"
+                + "<html>\n"
+                + "<head>\n"
+                + "  <meta charset=\"utf-8\"\n"
+                + "  <title>Pumpkin test</title>\n"
+                + "</head>\n"
+                + "<body style=\"background:blue;\">\n"
+                + "\n"
+                + "</body>\n"
+                + "</html>")
+        .setCode(200)
+        .send();
   }
 
   @Post(resource = "/")
