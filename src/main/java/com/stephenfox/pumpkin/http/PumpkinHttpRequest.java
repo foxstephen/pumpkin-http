@@ -120,11 +120,11 @@ class PumpkinHttpRequest implements HttpRequest {
 
   @Override
   public String toString() {
-    return "PumpkinHttpRequest{\n\t"
-        + "version='"
+    return "PumpkinHttpRequest{"
+        + "\n\tversion='"
         + version
-        + '\''
-        + ",\n\theaders="
+        + "',"
+        + "\n\theaders="
         + headers
         + ",\n\tmethod="
         + method
@@ -134,6 +134,6 @@ class PumpkinHttpRequest implements HttpRequest {
         + ",\n\tresource='"
         + resource
         + '\''
-        + '}';
+        + "\n}";
   }
 }

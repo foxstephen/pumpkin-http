@@ -26,7 +26,6 @@ class PumpkinHttpSocketListener implements HttpSocketListener {
 
   @Override
   public void listen() {
-
     try (final ServerSocket serverSocket = new ServerSocket(port)) {
       while (true) {
         final Socket socket = serverSocket.accept();
@@ -44,6 +43,7 @@ class PumpkinHttpSocketListener implements HttpSocketListener {
     try {
       sharedRequestQueue.add(PumpkinHttpRequest.from(reader, outputStream));
     } catch (InvalidHttpRequest e) {
+      HttpResponse.response400(new BadRequest(outputStream)).send();
       LOGGER.trace("", e);
     }
   }

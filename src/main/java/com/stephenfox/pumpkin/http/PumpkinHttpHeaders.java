@@ -23,7 +23,7 @@ public class PumpkinHttpHeaders implements HttpHeaders {
   }
 
   @Override
-  public String toString() {
+  public String format() {
     final StringBuilder builder = new StringBuilder();
     for (Map.Entry<String, String> header : headersMap.entrySet()) {
       builder.append(header.getKey());
@@ -31,7 +31,16 @@ public class PumpkinHttpHeaders implements HttpHeaders {
       builder.append(header.getValue());
       builder.append("\r\n");
     }
+    return builder.toString();
+  }
 
+  @Override
+  public String toString() {
+    final StringBuilder builder = new StringBuilder();
+    for (Map.Entry<String, String> entry : headersMap.entrySet()) {
+      builder.append("\n\t\t");
+      builder.append(entry);
+    }
     return builder.toString();
   }
 }

@@ -1,10 +1,16 @@
 package com.stephenfox.pumpkin.http;
 
+import static com.stephenfox.pumpkin.http.Constants.CONNECTION;
+import static com.stephenfox.pumpkin.http.Constants.CONTENT_LENGTH;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class PumpkinHttpResponse implements HttpResponse {
+  private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpResponse.class);
   private final DataOutputStream outputStream;
   private HttpHeaders headers;
   private String body;
@@ -38,13 +44,13 @@ class PumpkinHttpResponse implements HttpResponse {
       outputStream.writeBytes(prepare());
       outputStream.close();
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.error("", e);
     }
   }
 
   private String prepare() {
     addDefaultHeaders();
-    return ("HTTP/1.1 " + code + " " + reason(code) + "\r\n" + headers + "\r\n" + body);
+    return ("HTTP/1.1 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n" + body);
   }
 
   private static String reason(int code) {
@@ -61,12 +67,14 @@ class PumpkinHttpResponse implements HttpResponse {
     if (headers == null) {
       headers = new PumpkinHttpHeaders();
     }
-    if (headers.get("Content-Length") == null) {
+    if (headers.get(CONTENT_LENGTH) == null) {
       if (body != null) {
-        headers.set("Content-Length", String.valueOf(body.length()));
+        headers.set(CONTENT_LENGTH, String.valueOf(body.length()));
       } else {
-        headers.set("Content-Length", String.valueOf(0));
+        headers.set(CONTENT_LENGTH, String.valueOf(0));
       }
     }
+
+    headers.set(CONNECTION, "close");
   }
 }
