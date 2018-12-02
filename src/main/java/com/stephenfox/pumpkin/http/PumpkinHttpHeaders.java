@@ -1,11 +1,21 @@
 package com.stephenfox.pumpkin.http;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PumpkinHttpHeaders implements HttpHeaders {
 
   private final Map<String, String> headersMap;
+
+  static final HttpHeaders EMPTY = new PumpkinHttpHeaders(Collections.emptyMap());
+
+  PumpkinHttpHeaders(Map<String, String> headersMap) {
+    this.headersMap = new HashMap<>(headersMap.size());
+    for (Map.Entry<String, String> entry : headersMap.entrySet()) {
+      set(entry.getKey(), entry.getValue());
+    }
+  }
 
   PumpkinHttpHeaders() {
     this.headersMap = new HashMap<>();

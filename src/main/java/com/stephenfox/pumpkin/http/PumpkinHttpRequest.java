@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,22 +26,25 @@ class PumpkinHttpRequest implements HttpRequest {
     String body = null;
     String resource = null;
     HttpMethod method = null;
-    // TODO: This inits an empty HashMap for each request even if there's no headers.
-    HttpHeaders headers = new PumpkinHttpHeaders();
     String version = null;
+    HttpHeaders headers = null;
 
     try {
       final BufferedReader reader =
           new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+      // Parse the request line.
       final String[] parsedRequestLine = parseRequestLine(reader);
       method = HttpMethod.valueOf(parsedRequestLine[0]);
       resource = parsedRequestLine[1];
       version = parsedRequestLine[2];
 
       // Parse the headers.
-      // TODO: This assumes header always present?
-      parseHeaders(headers, reader);
-      body = parseBody(body, headers, reader);
+      headers = parseHeaders(reader);
+
+      // Parse the body.
+      body = parseBody(headers, reader);
+
     } catch (IOException e) {
       LOGGER.error("", e);
     }
@@ -60,8 +65,8 @@ class PumpkinHttpRequest implements HttpRequest {
     return parsedRequestLine;
   }
 
-  private static String parseBody(String body, HttpHeaders headers, BufferedReader reader)
-      throws IOException {
+  private static String parseBody(HttpHeaders headers, BufferedReader reader) throws IOException {
+    String body = null;
     // Read the body specified by Content-Length, this also assumes content-length is correct
     // case.
     final String cl = headers.get(CONTENT_LENGTH);
@@ -78,16 +83,22 @@ class PumpkinHttpRequest implements HttpRequest {
     return body;
   }
 
-  private static void parseHeaders(HttpHeaders headers, BufferedReader reader) throws IOException {
+  private static HttpHeaders parseHeaders(BufferedReader reader) throws IOException {
+    // TODO: This assumes header always present?
     String header = reader.readLine();
+    Map<String, String> headersMap = null;
     while (header.length() > 0) {
       final String[] headerPair = header.split(":");
       if (headerPair.length == 2) {
-        headers.set(headerPair[0], headerPair[1]);
+        if (headersMap == null) {
+          headersMap = new HashMap<>();
+        }
+        headersMap.put(headerPair[0], headerPair[1]);
       }
 
       header = reader.readLine();
     }
+    return headersMap == null ? HttpHeaders.empty() : HttpHeaders.from(headersMap);
   }
 
   private PumpkinHttpRequest(
