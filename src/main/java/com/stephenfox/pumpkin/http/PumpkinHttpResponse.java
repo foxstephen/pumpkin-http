@@ -3,21 +3,29 @@ package com.stephenfox.pumpkin.http;
 import static com.stephenfox.pumpkin.http.Constants.CONNECTION;
 import static com.stephenfox.pumpkin.http.Constants.CONTENT_LENGTH;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Socket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class PumpkinHttpResponse implements HttpResponse {
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpResponse.class);
-  private final OutputStream outputStream;
+  private OutputStream outputStream;
+  private final Socket socket;
   private HttpHeaders headers;
   private String body;
   private int code;
 
   PumpkinHttpResponse(HttpRequest request) {
-    this.outputStream = request.getConnection();
+    this.socket = request.getSocket();
+    try {
+      this.outputStream = new DataOutputStream(request.getSocket().getOutputStream());
+    } catch (IOException e) {
+      LOGGER.error("", e);
+    }
   }
 
   @Override
@@ -53,14 +61,18 @@ class PumpkinHttpResponse implements HttpResponse {
     } catch (IOException e) {
       LOGGER.error("An error occurred sending message to client", e);
     } finally {
-      try {
-        outputStream.close();
-        if (LOGGER.isTraceEnabled()) {
-          LOGGER.trace("Connection closed");
-        }
-      } catch (IOException e) {
-        LOGGER.error("", e);
+      close();
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Connection closed");
       }
+    }
+  }
+
+  private void close() {
+    try {
+      socket.close();
+    } catch (IOException e) {
+      LOGGER.error("Could not close socket", e);
     }
   }
 

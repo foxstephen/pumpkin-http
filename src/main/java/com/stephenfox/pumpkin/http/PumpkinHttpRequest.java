@@ -4,7 +4,8 @@ import static com.stephenfox.pumpkin.http.Constants.CONTENT_LENGTH;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -17,10 +18,9 @@ class PumpkinHttpRequest implements HttpRequest {
   private final HttpMethod method;
   private final String body;
   private final String resource;
-  private final OutputStream outputStream;
+  private final Socket socket;
 
-  static PumpkinHttpRequest from(BufferedReader reader, OutputStream outputStream)
-      throws InvalidHttpRequest {
+  static PumpkinHttpRequest from(Socket socket) throws InvalidHttpRequest {
     String body = null;
     String resource = null;
     HttpMethod method = null;
@@ -29,6 +29,9 @@ class PumpkinHttpRequest implements HttpRequest {
     String version = null;
 
     try {
+      final BufferedReader reader =
+          new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
       // Parse the request line.
       final String requestLine = reader.readLine();
       if (requestLine == null || requestLine.isEmpty()) {
@@ -70,17 +73,17 @@ class PumpkinHttpRequest implements HttpRequest {
     } catch (IOException e) {
       LOGGER.error("", e);
     }
-    return new PumpkinHttpRequest(outputStream, version, method, headers, resource, body);
+    return new PumpkinHttpRequest(socket, version, method, headers, resource, body);
   }
 
   private PumpkinHttpRequest(
-      OutputStream outputStream,
+      Socket socket,
       String version,
       HttpMethod method,
       HttpHeaders headers,
       String resource,
       String body) {
-    this.outputStream = outputStream;
+    this.socket = socket;
     this.version = version;
     this.method = method;
     this.headers = headers;
@@ -114,8 +117,8 @@ class PumpkinHttpRequest implements HttpRequest {
   }
 
   @Override
-  public OutputStream getConnection() {
-    return outputStream;
+  public Socket getSocket() {
+    return socket;
   }
 
   @Override

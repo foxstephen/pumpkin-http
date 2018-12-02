@@ -23,6 +23,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class PumpkinHttpServer implements HttpServer {
   private final ExecutorService threadPool;
   private final int port;
   private final String host;
-  private final BlockingQueue<HttpRequest> sharedRequestQueue;
+  private final BlockingQueue<Socket> sharedRequestQueue;
   private final Class<?> handlerClass;
   private Object instance;
   private Map<HttpMethod, Map<String, Method>> resourceHandlers;
