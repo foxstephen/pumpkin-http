@@ -9,14 +9,14 @@ import static com.stephenfox.pumpkin.http.HttpMethod.POST;
 import static com.stephenfox.pumpkin.http.HttpMethod.PUT;
 import static com.stephenfox.pumpkin.http.HttpMethod.TRACE;
 
-import com.stephenfox.pumpkin.http.handler.Connect;
-import com.stephenfox.pumpkin.http.handler.Delete;
-import com.stephenfox.pumpkin.http.handler.Get;
-import com.stephenfox.pumpkin.http.handler.Head;
-import com.stephenfox.pumpkin.http.handler.Options;
-import com.stephenfox.pumpkin.http.handler.Post;
-import com.stephenfox.pumpkin.http.handler.Put;
-import com.stephenfox.pumpkin.http.handler.Trace;
+import com.stephenfox.pumpkin.http.method.Connect;
+import com.stephenfox.pumpkin.http.method.Delete;
+import com.stephenfox.pumpkin.http.method.Get;
+import com.stephenfox.pumpkin.http.method.Head;
+import com.stephenfox.pumpkin.http.method.Options;
+import com.stephenfox.pumpkin.http.method.Post;
+import com.stephenfox.pumpkin.http.method.Put;
+import com.stephenfox.pumpkin.http.method.Trace;
 import com.stephenfox.pumpkin.http.reflection.Reflection;
 
 import java.lang.annotation.Annotation;
@@ -39,7 +39,7 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PumpkinHttpServer implements HttpServer {
+class PumpkinHttpServer implements HttpServer {
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpServer.class);
   private static final int THREADS = 4;
   private final ExecutorService threadPool;
@@ -50,7 +50,7 @@ public class PumpkinHttpServer implements HttpServer {
   private Object instance;
   private Map<HttpMethod, Map<String, Method>> resourceHandlers;
 
-  public PumpkinHttpServer(String host, int port, Class<?> handlerClass) {
+  PumpkinHttpServer(String host, int port, Class<?> handlerClass) {
     this.host = host;
     this.port = port;
     this.handlerClass = handlerClass;
@@ -60,6 +60,7 @@ public class PumpkinHttpServer implements HttpServer {
     this.parseHandler();
   }
 
+  @Override
   public void start() {
     LOGGER.info("Starting with {} thread(s); Listening on {}:{}", THREADS, host, port);
 
@@ -74,7 +75,7 @@ public class PumpkinHttpServer implements HttpServer {
     listener.listen();
   }
 
-  // Parse all endpoints from the handler class.
+  // Parse all endpoints from the method class.
   private void parseHandler() {
     try {
       final Constructor<?> constructor = handlerClass.getConstructor(null);

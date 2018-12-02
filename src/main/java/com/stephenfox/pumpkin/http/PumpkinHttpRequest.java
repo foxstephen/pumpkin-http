@@ -31,49 +31,63 @@ class PumpkinHttpRequest implements HttpRequest {
     try {
       final BufferedReader reader =
           new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-      // Parse the request line.
-      final String requestLine = reader.readLine();
-      if (requestLine == null || requestLine.isEmpty()) {
-        throw new InvalidHttpRequest("Invalid request line - was empty");
-      }
-      final String[] parsedRequestLine = requestLine.split(" ");
-      if (parsedRequestLine.length != 3) {
-        throw new InvalidHttpRequest("Invalid request line " + Arrays.toString(parsedRequestLine));
-      }
+      final String[] parsedRequestLine = parseRequestLine(reader);
       method = HttpMethod.valueOf(parsedRequestLine[0]);
       resource = parsedRequestLine[1];
       version = parsedRequestLine[2];
 
       // Parse the headers.
       // TODO: This assumes header always present?
-      String header = reader.readLine();
-      while (header.length() > 0) {
-        final String[] headerPair = header.split(":");
-        if (headerPair.length == 2) {
-          headers.set(headerPair[0], headerPair[1]);
-        }
-
-        header = reader.readLine();
-      }
-
-      // Read the body specified by Content-Length, this also assumes content-length is correct
-      // case.
-      final String cl = headers.get(CONTENT_LENGTH);
-      if (cl != null) {
-        final int contentLength = Integer.parseInt(cl);
-        final StringBuilder bodyBuilder = new StringBuilder();
-
-        for (int i = 0; i < contentLength; i++) {
-          bodyBuilder.append((char) reader.read());
-        }
-
-        body = bodyBuilder.toString();
-      }
+      parseHeaders(headers, reader);
+      body = parseBody(body, headers, reader);
     } catch (IOException e) {
       LOGGER.error("", e);
     }
     return new PumpkinHttpRequest(socket, version, method, headers, resource, body);
+  }
+
+  private static String[] parseRequestLine(BufferedReader reader)
+      throws IOException, InvalidHttpRequest {
+    // Parse the request line.
+    final String requestLine = reader.readLine();
+    if (requestLine == null || requestLine.isEmpty()) {
+      throw new InvalidHttpRequest("Invalid request line - was empty");
+    }
+    final String[] parsedRequestLine = requestLine.split(" ");
+    if (parsedRequestLine.length != 3) {
+      throw new InvalidHttpRequest("Invalid request line " + Arrays.toString(parsedRequestLine));
+    }
+    return parsedRequestLine;
+  }
+
+  private static String parseBody(String body, HttpHeaders headers, BufferedReader reader)
+      throws IOException {
+    // Read the body specified by Content-Length, this also assumes content-length is correct
+    // case.
+    final String cl = headers.get(CONTENT_LENGTH);
+    if (cl != null) {
+      final int contentLength = Integer.parseInt(cl);
+      final StringBuilder bodyBuilder = new StringBuilder();
+
+      for (int i = 0; i < contentLength; i++) {
+        bodyBuilder.append((char) reader.read());
+      }
+
+      body = bodyBuilder.toString();
+    }
+    return body;
+  }
+
+  private static void parseHeaders(HttpHeaders headers, BufferedReader reader) throws IOException {
+    String header = reader.readLine();
+    while (header.length() > 0) {
+      final String[] headerPair = header.split(":");
+      if (headerPair.length == 2) {
+        headers.set(headerPair[0], headerPair[1]);
+      }
+
+      header = reader.readLine();
+    }
   }
 
   private PumpkinHttpRequest(

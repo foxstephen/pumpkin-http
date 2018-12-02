@@ -18,7 +18,7 @@ public class PumpkinHttpHeaders implements HttpHeaders {
 
   @Override
   public HttpHeaders set(String header, String value) {
-    headersMap.put(header, value);
+    headersMap.put(header.trim(), value.trim());
     return this;
   }
 

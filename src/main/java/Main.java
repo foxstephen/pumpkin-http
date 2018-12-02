@@ -1,8 +1,8 @@
-import com.stephenfox.pumpkin.Pumpkin;
+import com.stephenfox.pumpkin.http.Pumpkin;
 import com.stephenfox.pumpkin.http.HttpRequest;
 import com.stephenfox.pumpkin.http.HttpResponse;
-import com.stephenfox.pumpkin.http.handler.Get;
-import com.stephenfox.pumpkin.http.handler.Post;
+import com.stephenfox.pumpkin.http.method.Get;
+import com.stephenfox.pumpkin.http.method.Post;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

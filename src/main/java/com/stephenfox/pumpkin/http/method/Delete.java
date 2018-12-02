@@ -1,4 +1,4 @@
-package com.stephenfox.pumpkin.http.handler;
+package com.stephenfox.pumpkin.http.method;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

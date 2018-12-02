@@ -9,7 +9,7 @@ import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
+class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpRequestProcessor.class);
   private final BlockingQueue<Socket> requestQueue;
@@ -71,7 +71,7 @@ public class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
       method.invoke(handlerInstance, request);
     } catch (IllegalAccessException | InvocationTargetException e) {
       LOGGER.error(
-          "An error occurred while attempting to invoke handler for {}", request.getResource());
+          "An error occurred while attempting to invoke method for {}", request.getResource());
       LOGGER.error("", e);
     }
   }

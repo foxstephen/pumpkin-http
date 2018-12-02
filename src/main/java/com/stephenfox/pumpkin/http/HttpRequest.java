@@ -13,5 +13,6 @@ public interface HttpRequest {
 
   String getBody();
 
+  // TODO: Probably not a good idea to expose this here as anyone can muck with it.
   Socket getSocket();
 }
