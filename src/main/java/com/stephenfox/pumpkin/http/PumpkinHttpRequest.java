@@ -87,6 +87,7 @@ class PumpkinHttpRequest implements HttpRequest {
     // TODO: This assumes header always present?
     String header = reader.readLine();
     Map<String, String> headersMap = null;
+
     while (header.length() > 0) {
       final String[] headerPair = header.split(":");
       if (headerPair.length == 2) {
