@@ -3,21 +3,21 @@ package com.stephenfox.pumpkin.http;
 import static com.stephenfox.pumpkin.http.Constants.CONNECTION;
 import static com.stephenfox.pumpkin.http.Constants.CONTENT_LENGTH;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class PumpkinHttpResponse implements HttpResponse {
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpResponse.class);
-  private final DataOutputStream outputStream;
+  private final OutputStream outputStream;
   private HttpHeaders headers;
   private String body;
   private int code;
 
   PumpkinHttpResponse(HttpRequest request) {
-    this.outputStream = new DataOutputStream(request.getConnection());
+    this.outputStream = request.getConnection();
   }
 
   @Override
@@ -41,16 +41,33 @@ class PumpkinHttpResponse implements HttpResponse {
   @Override
   public void send() {
     try {
-      outputStream.writeBytes(prepare());
-      outputStream.close();
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Writing response to client");
+      }
+
+      outputStream.write(prepare());
+
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Response written to client, will close connection");
+      }
     } catch (IOException e) {
-      LOGGER.error("", e);
+      LOGGER.error("An error occurred sending message to client", e);
+    } finally {
+      try {
+        outputStream.close();
+        if (LOGGER.isTraceEnabled()) {
+          LOGGER.trace("Connection closed");
+        }
+      } catch (IOException e) {
+        LOGGER.error("", e);
+      }
     }
   }
 
-  private String prepare() {
+  private byte[] prepare() {
     addDefaultHeaders();
-    return ("HTTP/1.1 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n" + body);
+    return ("HTTP/1.1 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n" + body)
+        .getBytes();
   }
 
   private static String reason(int code) {

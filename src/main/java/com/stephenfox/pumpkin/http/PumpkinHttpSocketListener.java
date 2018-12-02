@@ -43,8 +43,10 @@ class PumpkinHttpSocketListener implements HttpSocketListener {
     try {
       sharedRequestQueue.add(PumpkinHttpRequest.from(reader, outputStream));
     } catch (InvalidHttpRequest e) {
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("An error occurred parsing http request, responding with 400", e);
+      }
       HttpResponse.response400(new BadRequest(outputStream)).send();
-      LOGGER.trace("", e);
     }
   }
 

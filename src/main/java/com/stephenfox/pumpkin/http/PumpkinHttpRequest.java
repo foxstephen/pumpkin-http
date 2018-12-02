@@ -1,16 +1,16 @@
 package com.stephenfox.pumpkin.http;
 
+import static com.stephenfox.pumpkin.http.Constants.CONTENT_LENGTH;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class PumpkinHttpRequest implements HttpRequest {
-  private static final Pattern httpHeader = Pattern.compile("(?<key>\\S+):\\s*(?<value>.+)");
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpRequest.class);
   private final String version;
   private final HttpHeaders headers;
@@ -19,7 +19,8 @@ class PumpkinHttpRequest implements HttpRequest {
   private final String resource;
   private final OutputStream outputStream;
 
-  static PumpkinHttpRequest from(BufferedReader reader, OutputStream outputStream) {
+  static PumpkinHttpRequest from(BufferedReader reader, OutputStream outputStream)
+      throws InvalidHttpRequest {
     String body = null;
     String resource = null;
     HttpMethod method = null;
@@ -31,11 +32,11 @@ class PumpkinHttpRequest implements HttpRequest {
       // Parse the request line.
       final String requestLine = reader.readLine();
       if (requestLine == null || requestLine.isEmpty()) {
-        throw new InvalidHttpRequest("Invalid request line");
+        throw new InvalidHttpRequest("Invalid request line - was empty");
       }
-      final String[] parsedRequestLine = requestLine.split(" "); // TODO: precompile regex?
+      final String[] parsedRequestLine = requestLine.split(" ");
       if (parsedRequestLine.length != 3) {
-        throw new IllegalArgumentException("Invalid request line");
+        throw new InvalidHttpRequest("Invalid request line " + Arrays.toString(parsedRequestLine));
       }
       method = HttpMethod.valueOf(parsedRequestLine[0]);
       resource = parsedRequestLine[1];
@@ -45,16 +46,17 @@ class PumpkinHttpRequest implements HttpRequest {
       // TODO: This assumes header always present?
       String header = reader.readLine();
       while (header.length() > 0) {
-        final Matcher matcher = httpHeader.matcher(header);
-        if (matcher.matches()) {
-          headers.set(matcher.group("key"), matcher.group("value"));
+        final String[] headerPair = header.split(":");
+        if (headerPair.length == 2) {
+          headers.set(headerPair[0], headerPair[1]);
         }
 
         header = reader.readLine();
       }
 
-      // Read the body specified by Content-Length
-      final String cl = headers.get("Content-Length");
+      // Read the body specified by Content-Length, this also assumes content-length is correct
+      // case.
+      final String cl = headers.get(CONTENT_LENGTH);
       if (cl != null) {
         final int contentLength = Integer.parseInt(cl);
         final StringBuilder bodyBuilder = new StringBuilder();
@@ -65,11 +67,9 @@ class PumpkinHttpRequest implements HttpRequest {
 
         body = bodyBuilder.toString();
       }
-
     } catch (IOException e) {
       LOGGER.error("", e);
     }
-
     return new PumpkinHttpRequest(outputStream, version, method, headers, resource, body);
   }
 
