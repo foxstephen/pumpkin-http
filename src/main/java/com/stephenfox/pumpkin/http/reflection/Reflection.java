@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public class Reflection {
 
+  private Reflection() {}
+
   public static class MethodAnnotationPair<T extends Annotation> {
     private Method method;
     private T annotation;
