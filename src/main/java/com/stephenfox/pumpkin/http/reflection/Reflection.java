@@ -2,6 +2,8 @@ package com.stephenfox.pumpkin.http.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class Reflection {
@@ -24,16 +26,17 @@ public class Reflection {
     }
   }
 
-  public static <T extends Annotation> Optional<MethodAnnotationPair<T>> getMethodAnnotation(
+  public static <T extends Annotation> List<MethodAnnotationPair<T>> getMethodsWithAnnotation(
       Class<T> annotationClass, Class<?> clazz) {
 
+    final List<MethodAnnotationPair<T>> pairs = new ArrayList<>();
     for (Method m : clazz.getDeclaredMethods()) {
       final T annotation = m.getAnnotation(annotationClass);
 
       if (annotation != null) {
-        return Optional.of(new MethodAnnotationPair<>(m, annotation));
+        pairs.add(new MethodAnnotationPair<>(m, annotation));
       }
     }
-    return Optional.empty();
+    return pairs;
   }
 }

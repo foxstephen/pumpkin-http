@@ -78,17 +78,22 @@ class PumpkinHttpResponse implements HttpResponse {
 
   private byte[] prepare() {
     addDefaultHeaders();
+    if (code == 0) {
+      code = 200;
+    }
     return ("HTTP/1.1 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n" + body)
         .getBytes();
   }
 
   private static String reason(int code) {
     if (code == 404) {
-      return "Not found";
+      return "Not Found";
     } else if (code == 200) {
-      return "OK";
+      return "Ok";
+    } else if (code == 500) {
+      return "Internal Server Error";
     } else {
-      return "No reason";
+      return "No Reason";
     }
   }
 

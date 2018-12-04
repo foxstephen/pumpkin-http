@@ -13,13 +13,13 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpRequestProcessor.class);
   private final BlockingQueue<Socket> requestQueue;
-  private final Map<HttpMethod, Map<String, Method>> resourceHandlers;
+  private final Map<String, Method> resourceHandlers;
   private final Object handlerInstance;
 
   PumpkinHttpRequestProcessor(
       BlockingQueue<Socket> requestQueue,
       Object handlerInstance,
-      Map<HttpMethod, Map<String, Method>> resourceHandlers) {
+      Map<String, Method> resourceHandlers) {
     this.requestQueue = requestQueue;
     this.handlerInstance = handlerInstance;
     this.resourceHandlers = resourceHandlers;
@@ -38,9 +38,9 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
             LOGGER.debug("Received request {}", request);
           }
 
-          final Method method =
-              resourceHandlers.get(request.getMethod()).get(request.getResource());
+          final Method method = resourceHandlers.get(request.getResource());
           if (method == null) {
+            LOGGER.warn("No method to invoke for resource {}", request.getResource());
             HttpResponse.response404(request).send();
           } else {
             invokeHandler(request, method);
@@ -71,8 +71,10 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
       method.invoke(handlerInstance, request);
     } catch (IllegalAccessException | InvocationTargetException e) {
       LOGGER.error(
-          "An error occurred while attempting to invoke method for {}", request.getResource());
+          "An error occurred while attempting to invoke method for {}, returning 500",
+          request.getResource());
       LOGGER.error("", e);
+      HttpResponse.forRequest(request).setCode(500).send();
     }
   }
 
