@@ -15,7 +15,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,18 +34,18 @@ class PumpkinHttpServer implements HttpServer {
   private final int port;
   private final String host;
   private final BlockingQueue<Socket> sharedRequestQueue;
-  private final Class<?> handlerClass;
-  private Object instance;
-  private Map<String, Method> resourceHandlers;
+  private final Class<?> classToForwardRequestsTo;
+  private Object instanceToForwardRequestsTo;
+  private Map<String, Handler> handlers;
 
-  PumpkinHttpServer(String host, int port, Class<?> handlerClass) {
+  PumpkinHttpServer(String host, int port, Class<?> classToForwardRequestsTo) {
     this.host = host;
     this.port = port;
-    this.handlerClass = handlerClass;
-    this.resourceHandlers = new HashMap<>();
+    this.classToForwardRequestsTo = classToForwardRequestsTo;
+    this.handlers = new HashMap<>();
     this.threadPool = Executors.newCachedThreadPool(new PumpkinThreadFactory());
     this.sharedRequestQueue = new LinkedBlockingQueue<>();
-    this.parseHandler();
+    this.parseHttpMethodMappings();
   }
 
   @Override
@@ -55,7 +54,7 @@ class PumpkinHttpServer implements HttpServer {
 
     for (int i = 0; i < THREADS; i++) {
       final HttpRequestProcessor requestProcessor =
-          new PumpkinHttpRequestProcessor(sharedRequestQueue, instance, resourceHandlers);
+          new PumpkinHttpRequestProcessor(sharedRequestQueue, handlers);
       threadPool.execute(requestProcessor::run);
     }
 
@@ -64,12 +63,16 @@ class PumpkinHttpServer implements HttpServer {
     listener.listen();
   }
 
-  // Parse all endpoints from the method class.
-  private void parseHandler() {
-    // TODO: This method needs to be refactored LOLOLOL.
+  @Override
+  public HttpServer addHandler(Handler handler) {
+    this.handlers.put(handler.path(), handler);
+    return this;
+  }
+
+  private void parseHttpMethodMappings() {
     try {
-      final Constructor<?> constructor = handlerClass.getConstructor(null);
-      this.instance = constructor.newInstance(null);
+      final Constructor<?> constructor = classToForwardRequestsTo.getConstructor(null);
+      this.instanceToForwardRequestsTo = constructor.newInstance(null);
     } catch (NoSuchMethodException
         | IllegalAccessException
         | InstantiationException
@@ -77,49 +80,39 @@ class PumpkinHttpServer implements HttpServer {
       LOGGER.error("", e);
     }
 
-    final List<Class<? extends Annotation>> httpMethodAnnotations =
-        Arrays.asList(
-            Options.class,
-            Get.class,
-            Head.class,
-            Post.class,
-            Put.class,
-            Delete.class,
-            Trace.class,
-            Connect.class);
-
-    for (Class<? extends Annotation> httpMethodClass : httpMethodAnnotations) {
+    for (Class<? extends Annotation> httpMethodAnnotation : HttpMethod.all) {
       final List<? extends Reflection.MethodAnnotationPair<? extends Annotation>> methods =
-          Reflection.getMethodsWithAnnotation(httpMethodClass, handlerClass);
+          Reflection.getMethodsWithAnnotation(httpMethodAnnotation, classToForwardRequestsTo);
 
       for (Reflection.MethodAnnotationPair<? extends Annotation> methodAnnotationPair : methods) {
         final Method method = methodAnnotationPair.getMethod();
         final Annotation annotation = methodAnnotationPair.getAnnotation();
 
+        final Handler handler = new PumpkinForwardingHandler(instanceToForwardRequestsTo, method);
         if (annotation instanceof Options) {
           final String resource = ((Options) annotation).resource();
-          resourceHandlers.put(resource, method);
+          handlers.put(resource, handler);
         } else if (annotation instanceof Get) {
           final String resource = ((Get) annotation).resource();
-          resourceHandlers.put(resource, method);
+          handlers.put(resource, handler);
         } else if (annotation instanceof Head) {
           final String resource = ((Head) annotation).resource();
-          resourceHandlers.put(resource, method);
+          handlers.put(resource, handler);
         } else if (annotation instanceof Post) {
           final String resource = ((Post) annotation).resource();
-          resourceHandlers.put(resource, method);
+          handlers.put(resource, handler);
         } else if (annotation instanceof Put) {
           final String resource = ((Put) annotation).resource();
-          resourceHandlers.put(resource, method);
+          handlers.put(resource, handler);
         } else if (annotation instanceof Delete) {
           final String resource = ((Delete) annotation).resource();
-          resourceHandlers.put(resource, method);
+          handlers.put(resource, handler);
         } else if (annotation instanceof Trace) {
           final String resource = ((Trace) annotation).resource();
-          resourceHandlers.put(resource, method);
+          handlers.put(resource, handler);
         } else if (annotation instanceof Connect) {
           final String resource = ((Connect) annotation).resource();
-          resourceHandlers.put(resource, method);
+          handlers.put(resource, handler);
         } else {
           throw new IllegalArgumentException(
               "Unknown http method for annotation class" + annotation);

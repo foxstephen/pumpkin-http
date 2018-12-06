@@ -13,16 +13,11 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpRequestProcessor.class);
   private final BlockingQueue<Socket> requestQueue;
-  private final Map<String, Method> resourceHandlers;
-  private final Object handlerInstance;
+  private final Map<String, Handler> handlers;
 
-  PumpkinHttpRequestProcessor(
-      BlockingQueue<Socket> requestQueue,
-      Object handlerInstance,
-      Map<String, Method> resourceHandlers) {
+  PumpkinHttpRequestProcessor(BlockingQueue<Socket> requestQueue, Map<String, Handler> handlers) {
     this.requestQueue = requestQueue;
-    this.handlerInstance = handlerInstance;
-    this.resourceHandlers = resourceHandlers;
+    this.handlers = handlers;
   }
 
   @Override
@@ -38,12 +33,12 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
             LOGGER.debug("Received request {}", request);
           }
 
-          final Method method = resourceHandlers.get(request.getResource());
-          if (method == null) {
-            LOGGER.warn("No method to invoke for resource {}", request.getResource());
+          final Handler handler = handlers.get(request.getResource());
+          if (handler == null) {
+            LOGGER.warn("No handler found for resource {}", request.getResource());
             HttpResponse.response404(request).send();
           } else {
-            invokeHandler(request, method);
+            handler.handle(request);
           }
         } else {
           HttpResponse.response400(new BadRequest(socket)).send();
@@ -63,18 +58,6 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
         LOGGER.trace("Could not parse http request", e);
       }
       return null;
-    }
-  }
-
-  private void invokeHandler(HttpRequest request, Method method) {
-    try {
-      method.invoke(handlerInstance, request);
-    } catch (IllegalAccessException | InvocationTargetException e) {
-      LOGGER.error(
-          "An error occurred while attempting to invoke method for {}, returning 500",
-          request.getResource());
-      LOGGER.error("", e);
-      HttpResponse.forRequest(request).setCode(500).send();
     }
   }
 
