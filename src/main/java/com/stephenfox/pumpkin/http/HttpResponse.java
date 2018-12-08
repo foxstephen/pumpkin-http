@@ -14,6 +14,10 @@ public interface HttpResponse {
     return forRequest(httpRequest).setCode(400);
   }
 
+  static HttpResponse response500(HttpRequest httpRequest) {
+    return forRequest(httpRequest).setCode(500);
+  }
+
   HttpResponse setHeaders(HttpHeaders headers);
 
   HttpResponse setBody(String body);

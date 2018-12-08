@@ -1,7 +1,7 @@
 package com.stephenfox.pumpkin.http;
 
 /**
- * Handler can be used for intercepting and handling requests before they reach their target, as
+ * Handler can be used for intercepting and handling requests before they reach their target, a
  * middleware as such.
  *
  * @author Stephen Fox.
