@@ -1,5 +1,13 @@
 package com.stephenfox.pumpkin.http;
 
+import static com.stephenfox.pumpkin.http.Constants.CONTENT_TYPE;
+import static com.stephenfox.pumpkin.http.Constants.IMAGE_X_ICON;
+import static com.stephenfox.pumpkin.http.Constants.TEXT_CSS;
+import static com.stephenfox.pumpkin.http.Constants.TEXT_HTML;
+import static com.stephenfox.pumpkin.http.Constants.TEXT_JS;
+import static com.stephenfox.pumpkin.http.Constants.TEXT_PLAIN;
+
+import java.io.File;
 import java.io.InputStream;
 import java.util.Scanner;
 
@@ -21,10 +29,15 @@ public class PumpkinStaticResourcesHandler implements Handler {
 
   @Override
   public void handle(HttpRequest httpRequest) {
-    final String resourcePath = httpRequest.getResource();
+    final File file = new File(httpRequest.getResource());
+    final String fileName = file.getName();
+    final String resourcePath = directory + fileName;
+
     try {
-      final String resourceContents = readResource(resourcePath.substring(1));
-      HttpResponse.forRequest(httpRequest).setBody(resourceContents).send();
+      final String resourceContents = readResource(resourcePath);
+      final HttpHeaders httpHeaders = new PumpkinHttpHeaders();
+      httpHeaders.set(CONTENT_TYPE, fileFormatHeader(fileName));
+      HttpResponse.forRequest(httpRequest).setBody(resourceContents).setHeaders(httpHeaders).send();
     } catch (Exception e) {
       LOGGER.warn("A problem occurred reading from {}", resourcePath, e);
       HttpResponse.response500(httpRequest).send();
@@ -54,6 +67,21 @@ public class PumpkinStaticResourcesHandler implements Handler {
         contents.append(line).append("\n");
       }
       return contents.toString();
+    }
+  }
+
+  private static String fileFormatHeader(String filename) {
+    // Probably not the best way of doing this.
+    if (filename.contains(".css")) {
+      return TEXT_CSS;
+    } else if (filename.contains(".js")) {
+      return TEXT_JS;
+    } else if (filename.contains(".html")) {
+      return TEXT_HTML;
+    } else if (filename.contains(".ico")) {
+      return IMAGE_X_ICON;
+    } else {
+      return TEXT_PLAIN;
     }
   }
 }

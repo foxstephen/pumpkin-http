@@ -1,7 +1,12 @@
 package com.stephenfox.pumpkin.http;
 
+import static com.stephenfox.pumpkin.http.Constants.CLOSE;
 import static com.stephenfox.pumpkin.http.Constants.CONNECTION;
 import static com.stephenfox.pumpkin.http.Constants.CONTENT_LENGTH;
+import static com.stephenfox.pumpkin.http.Constants.INTERNAL_SERVER_ERROR;
+import static com.stephenfox.pumpkin.http.Constants.NOT_FOUND;
+import static com.stephenfox.pumpkin.http.Constants.NO_REASON;
+import static com.stephenfox.pumpkin.http.Constants.OK;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -87,13 +92,13 @@ class PumpkinHttpResponse implements HttpResponse {
 
   private static String reason(int code) {
     if (code == 404) {
-      return "Not Found";
+      return NOT_FOUND;
     } else if (code == 200) {
-      return "Ok";
+      return OK;
     } else if (code == 500) {
-      return "Internal Server Error";
+      return INTERNAL_SERVER_ERROR;
     } else {
-      return "No Reason";
+      return NO_REASON;
     }
   }
 
@@ -109,6 +114,6 @@ class PumpkinHttpResponse implements HttpResponse {
       }
     }
 
-    headers.set(CONNECTION, "close");
+    headers.set(CONNECTION, CLOSE);
   }
 }
