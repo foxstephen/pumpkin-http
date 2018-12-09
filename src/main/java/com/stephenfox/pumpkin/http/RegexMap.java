@@ -60,6 +60,7 @@ class RegexMap<V> implements Map<String, V> {
   public V remove(Object key) {
     final Pattern pattern = getPatternForKey(key);
     if (pattern != null) {
+      patterns.remove(pattern);
       return map.remove(pattern);
     }
     return null;
@@ -67,10 +68,14 @@ class RegexMap<V> implements Map<String, V> {
 
   @Override
   public void putAll(Map<? extends String, ? extends V> m) {
+    for (Entry<? extends String, ? extends V> entry : m.entrySet()) {
+      put(entry.getKey(), entry.getValue());
+    }
   }
 
   @Override
   public void clear() {
+    patterns.clear();
     map.clear();
   }
 

@@ -5,6 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
 public class RegexMapTest {
@@ -41,6 +44,23 @@ public class RegexMapTest {
     regexMap.put("\\S", "1");
     regexMap.remove("\\S");
     assertTrue(regexMap.isEmpty());
+
+    assertNull(regexMap.remove("\\S"));
+  }
+
+  @Test
+  public void testClear() {
+    final RegexMap<String> regexMap = new RegexMap<>();
+    final String regex1 = "f*";
+    final String regex2 = "\\/app\\/\\d*\\/resources";
+    final String regex3 = "[0-9]";
+
+    regexMap.put(regex1, "");
+    regexMap.put(regex2, "");
+    regexMap.put(regex3, "");
+
+    regexMap.clear();
+    assertEquals(0, regexMap.size());
   }
 
   @Test
@@ -48,7 +68,7 @@ public class RegexMapTest {
     final RegexMap<String> regexMap = new RegexMap<>();
     final String regex1 = "f*";
     final String regex2 = "\\/app\\/\\d*\\/resources";
-    final String regex3 = "\\S+";
+    final String regex3 = "[0-9]";
 
     regexMap.put(regex1, "");
     regexMap.put(regex2, "");
@@ -65,7 +85,7 @@ public class RegexMapTest {
     final RegexMap<String> regexMap = new RegexMap<>();
     final String regex1 = "f*";
     final String regex2 = "\\/app\\/\\d*\\/resources";
-    final String regex3 = "\\S+";
+    final String regex3 = "[0-9]";
 
     regexMap.put(regex1, "foo");
     regexMap.put(regex2, "bar");
@@ -82,7 +102,7 @@ public class RegexMapTest {
     final RegexMap<String> regexMap = new RegexMap<>();
     final String regex1 = "f*";
     final String regex2 = "\\/app\\/\\d*\\/resources";
-    final String regex3 = "\\S+";
+    final String regex3 = "[0-9]";
 
     regexMap.put(regex1, "foo");
     regexMap.put(regex2, "bar");
@@ -99,7 +119,7 @@ public class RegexMapTest {
     final RegexMap<String> regexMap = new RegexMap<>();
     final String regex1 = "f*";
     final String regex2 = "\\/app\\/\\d*\\/resources";
-    final String regex3 = "\\S+";
+    final String regex3 = "[0-9]";
 
     regexMap.put(regex1, "foo");
     regexMap.put(regex2, "bar");
@@ -113,7 +133,7 @@ public class RegexMapTest {
     final RegexMap<String> regexMap = new RegexMap<>();
     final String regex1 = "f*";
     final String regex2 = "\\/app\\/\\d*\\/resources";
-    final String regex3 = "\\S+";
+    final String regex3 = "[0-9]";
 
     regexMap.put(regex1, "foo");
     regexMap.put(regex2, "bar");
@@ -123,5 +143,24 @@ public class RegexMapTest {
     assertTrue(regexMap.values().contains("foo"));
     assertTrue(regexMap.values().contains("bar"));
     assertTrue(regexMap.values().contains("fizz"));
+  }
+
+  @Test
+  public void testPutAll() {
+    final RegexMap<String> regexMap = new RegexMap<>();
+    final String regex1 = "f*";
+    final String regex2 = "\\/app\\/\\d*\\/resources";
+    final String regex3 = "[0-9]";
+
+    final Map<String, String> map = new HashMap<>();
+    map.put(regex1, "foo");
+    map.put(regex2, "bar");
+    map.put(regex3, "fizz");
+    regexMap.putAll(map);
+
+    assertEquals(3, regexMap.size());
+    assertEquals("foo", regexMap.get("f"));
+    assertEquals("bar", regexMap.get("/app/1/resources"));
+    assertEquals("fizz", regexMap.get("1"));
   }
 }
