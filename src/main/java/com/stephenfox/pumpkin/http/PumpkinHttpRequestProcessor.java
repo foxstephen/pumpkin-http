@@ -51,7 +51,7 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
   private PumpkinHttpRequest parseRequest(Socket socket) {
     try {
       return PumpkinHttpRequest.from(socket);
-    } catch (InvalidHttpRequest e) {
+    } catch (InvalidHttpRequestException e) {
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Could not parse http request", e);
       }

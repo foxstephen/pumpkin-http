@@ -22,7 +22,7 @@ class PumpkinHttpRequest implements HttpRequest {
   private final String resource;
   private final Socket socket;
 
-  static PumpkinHttpRequest from(Socket socket) throws InvalidHttpRequest {
+  static PumpkinHttpRequest from(Socket socket) throws InvalidHttpRequestException {
     String body = null;
     String resource = null;
     HttpMethod method = null;
@@ -52,15 +52,15 @@ class PumpkinHttpRequest implements HttpRequest {
   }
 
   private static String[] parseRequestLine(BufferedReader reader)
-      throws IOException, InvalidHttpRequest {
+      throws IOException, InvalidHttpRequestException {
     // Parse the request line.
     final String requestLine = reader.readLine();
     if (requestLine == null || requestLine.isEmpty()) {
-      throw new InvalidHttpRequest("Invalid request line - was empty");
+      throw new InvalidHttpRequestException("Invalid request line - was empty");
     }
     final String[] parsedRequestLine = requestLine.split(" ");
     if (parsedRequestLine.length != 3) {
-      throw new InvalidHttpRequest("Invalid request line " + Arrays.toString(parsedRequestLine));
+      throw new InvalidHttpRequestException("Invalid request line " + Arrays.toString(parsedRequestLine));
     }
     return parsedRequestLine;
   }
