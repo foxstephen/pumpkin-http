@@ -1,5 +1,7 @@
 package com.stephenfox.pumpkin.http;
 
+import static com.stephenfox.pumpkin.http.Constants.PUMPKIN;
+
 import com.stephenfox.pumpkin.http.method.Connect;
 import com.stephenfox.pumpkin.http.method.Delete;
 import com.stephenfox.pumpkin.http.method.Get;
@@ -15,9 +17,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,6 +50,7 @@ class PumpkinHttpServer implements HttpServer {
 
   @Override
   public void start() {
+    System.out.println(PUMPKIN);
     LOGGER.info("Starting with {} thread(s); Listening on {}:{}", THREADS, host, port);
 
     for (int i = 0; i < THREADS; i++) {

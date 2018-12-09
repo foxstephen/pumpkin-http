@@ -86,7 +86,7 @@ class PumpkinHttpResponse implements HttpResponse {
     if (code == 0) {
       code = 200;
     }
-    return ("HTTP/1.1 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n" + body)
+    return ("HTTP/2.0 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n" + body)
         .getBytes();
   }
 
