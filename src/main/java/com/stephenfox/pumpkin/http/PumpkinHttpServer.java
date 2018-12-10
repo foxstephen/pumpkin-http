@@ -34,22 +34,31 @@ class PumpkinHttpServer implements HttpServer {
   private final int port;
   private final String host;
   private final BlockingQueue<Socket> sharedRequestQueue;
-  private final Class<?> classToForwardRequestsTo;
+  private Class<?> classToForwardRequestsTo;
   private Object instanceToForwardRequestsTo;
   private RegexMap<Handler> handlers;
 
   PumpkinHttpServer(String host, int port, Class<?> classToForwardRequestsTo) {
+    this(host, port);
+    this.classToForwardRequestsTo = classToForwardRequestsTo;
+  }
+
+  PumpkinHttpServer(String host, int port, Object instanceToForwardRequestsTo) {
+    this(host, port);
+    this.instanceToForwardRequestsTo = instanceToForwardRequestsTo;
+  }
+
+  private PumpkinHttpServer(String host, int port) {
     this.host = host;
     this.port = port;
-    this.classToForwardRequestsTo = classToForwardRequestsTo;
     this.handlers = new RegexMap<>();
     this.threadPool = Executors.newCachedThreadPool(new PumpkinThreadFactory());
     this.sharedRequestQueue = new LinkedBlockingQueue<>();
-    this.parseHttpMethodMappings();
   }
 
   @Override
   public void start() {
+    this.parseHttpMethodMappings();
     System.out.println(PUMPKIN);
     LOGGER.info("Starting with {} thread(s); Listening on {}:{}", THREADS, host, port);
 
@@ -71,19 +80,12 @@ class PumpkinHttpServer implements HttpServer {
   }
 
   private void parseHttpMethodMappings() {
-    try {
-      final Constructor<?> constructor = classToForwardRequestsTo.getConstructor(null);
-      this.instanceToForwardRequestsTo = constructor.newInstance(null);
-    } catch (NoSuchMethodException
-        | IllegalAccessException
-        | InstantiationException
-        | InvocationTargetException e) {
-      LOGGER.error("", e);
-    }
+    createInstanceToForwardTo();
 
     for (Class<? extends Annotation> httpMethodAnnotation : HttpMethod.all) {
       final List<? extends Reflection.MethodAnnotationPair<? extends Annotation>> methods =
-          Reflection.getMethodsWithAnnotation(httpMethodAnnotation, classToForwardRequestsTo);
+          Reflection.getMethodsWithAnnotation(
+              httpMethodAnnotation, instanceToForwardRequestsTo.getClass());
 
       for (Reflection.MethodAnnotationPair<? extends Annotation> methodAnnotationPair : methods) {
         final Method method = methodAnnotationPair.getMethod();
@@ -118,6 +120,21 @@ class PumpkinHttpServer implements HttpServer {
           throw new IllegalArgumentException(
               "Unknown http method for annotation class" + annotation);
         }
+      }
+    }
+  }
+
+  private void createInstanceToForwardTo() {
+    if (instanceToForwardRequestsTo == null) {
+      try {
+        final Constructor<?> constructor = classToForwardRequestsTo.getConstructor(null);
+        this.instanceToForwardRequestsTo = constructor.newInstance(null);
+      } catch (NoSuchMethodException
+          | IllegalAccessException
+          | InstantiationException
+          | InvocationTargetException e) {
+        LOGGER.error("", e);
+        throw new RuntimeException(e);
       }
     }
   }

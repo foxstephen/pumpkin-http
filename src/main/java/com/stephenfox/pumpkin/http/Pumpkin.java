@@ -44,4 +44,15 @@ public class Pumpkin {
   public static HttpServer httpServer(String host, int port, Class<?> handlerClass) {
     return new PumpkinHttpServer(host, port, handlerClass);
   }
+
+  /**
+   * Create a new http server.
+   *
+   * @param host The host to run the server on.
+   * @param port The port to listen to connections on.
+   * @param handlerObject The object which contains the handlers for all endpoints.
+   */
+  public static HttpServer httpServer(String host, int port, Object handlerObject) {
+    return new PumpkinHttpServer(host, port, handlerObject);
+  }
 }
