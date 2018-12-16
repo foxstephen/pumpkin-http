@@ -1,7 +1,6 @@
 package com.stephenfox.pumpkin.http;
 
 import java.net.Socket;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import org.slf4j.Logger;
@@ -11,9 +10,9 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinHttpRequestProcessor.class);
   private final BlockingQueue<Socket> requestQueue;
-  private final Map<String, Handler> handlers;
+  private final PathMapper<Handler> handlers;
 
-  PumpkinHttpRequestProcessor(BlockingQueue<Socket> requestQueue, Map<String, Handler> handlers) {
+  PumpkinHttpRequestProcessor(BlockingQueue<Socket> requestQueue, PathMapper<Handler> handlers) {
     this.requestQueue = requestQueue;
     this.handlers = handlers;
   }
@@ -31,8 +30,11 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
             LOGGER.debug("Received request {}", request);
           }
 
-          final Handler handler = handlers.get(request.getResource());
-          if (handler == null) {
+          final PathMapper.Entry<Handler> handlerForPath = handlers.get(request.getResource());
+          final Handler handler = handlerForPath.getValue();
+          request.setPathParams(handlerForPath.pathParams());
+
+          if (handlerForPath.getValue() == null) {
             LOGGER.warn("No handler found for resource {}", request.getResource());
             HttpResponse.response404(request).send();
           } else {
@@ -96,6 +98,11 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
     @Override
     public Socket getSocket() {
       return socket;
+    }
+
+    @Override
+    public String getPathParam(String name) {
+      return null;
     }
   }
 }

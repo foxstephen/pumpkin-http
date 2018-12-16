@@ -13,6 +13,8 @@ public interface HttpRequest {
 
   String getBody();
 
+  String getPathParam(String name);
+
   // TODO: Probably not a good idea to expose this here as anyone can muck with it.
   Socket getSocket();
 }

@@ -21,6 +21,7 @@ class PumpkinHttpRequest implements HttpRequest {
   private final String body;
   private final String resource;
   private final Socket socket;
+  private Map<String, String> pathParams;
 
   static PumpkinHttpRequest from(Socket socket) throws InvalidHttpRequestException {
     String body = null;
@@ -60,7 +61,8 @@ class PumpkinHttpRequest implements HttpRequest {
     }
     final String[] parsedRequestLine = requestLine.split(" ");
     if (parsedRequestLine.length != 3) {
-      throw new InvalidHttpRequestException("Invalid request line " + Arrays.toString(parsedRequestLine));
+      throw new InvalidHttpRequestException(
+          "Invalid request line " + Arrays.toString(parsedRequestLine));
     }
     return parsedRequestLine;
   }
@@ -115,6 +117,18 @@ class PumpkinHttpRequest implements HttpRequest {
     this.headers = headers;
     this.resource = resource;
     this.body = body;
+  }
+
+  void setPathParams(Map<String, String> pathParams) {
+    this.pathParams = pathParams;
+  }
+
+  @Override
+  public String getPathParam(String name) {
+    if (pathParams != null) {
+      return pathParams.get(name);
+    }
+    return null;
   }
 
   @Override

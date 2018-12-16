@@ -36,7 +36,7 @@ class PumpkinHttpServer implements HttpServer {
   private final BlockingQueue<Socket> sharedRequestQueue;
   private Class<?> classToForwardRequestsTo;
   private Object instanceToForwardRequestsTo;
-  private RegexMap<Handler> handlers;
+  private PathMapper<Handler> handlers;
 
   PumpkinHttpServer(String host, int port, Class<?> classToForwardRequestsTo) {
     this(host, port);
@@ -51,7 +51,7 @@ class PumpkinHttpServer implements HttpServer {
   private PumpkinHttpServer(String host, int port) {
     this.host = host;
     this.port = port;
-    this.handlers = new RegexMap<>();
+    this.handlers = new PathMapper<>();
     this.threadPool = Executors.newCachedThreadPool(new PumpkinThreadFactory());
     this.sharedRequestQueue = new LinkedBlockingQueue<>();
   }
