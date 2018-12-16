@@ -28,6 +28,6 @@
                              """"""
 
 A micro-http framework for Java. Developed mostly, for
-my own web needs - using zero external/ third party dependencies.
+my own web needs - using zero external/ third party dependencies (well, apart from logger)
 
 
