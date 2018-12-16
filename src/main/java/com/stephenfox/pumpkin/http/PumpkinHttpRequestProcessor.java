@@ -31,13 +31,12 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
           }
 
           final PathMapper.Entry<Handler> handlerForPath = handlers.get(request.getResource());
-          final Handler handler = handlerForPath.getValue();
-          request.setPathParams(handlerForPath.pathParams());
-
-          if (handlerForPath.getValue() == null) {
+          if (handlerForPath == null) {
             LOGGER.warn("No handler found for resource {}", request.getResource());
             HttpResponse.response404(request).send();
           } else {
+            final Handler handler = handlerForPath.getValue();
+            request.setPathParams(handlerForPath.pathParams());
             handler.handle(request);
           }
         } else {
