@@ -26,3 +26,8 @@
          "$ooo $$o$   $$$$$$$$$$$$$$$$ $$$$$$$$o"
             "" $$$$$$$$$$$$$$$$$$$$$$" """"
                              """"""
+
+A micro-http framework for Java. Developed mostly, for
+my own web needs.
+
+
