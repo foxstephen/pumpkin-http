@@ -98,10 +98,12 @@ class PumpkinHttpResponse implements HttpResponse {
 
     final byte[] httpHeaders =
         ("HTTP/2.0 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n").getBytes();
-    final byte[] response = new byte[httpHeaders.length + body.length];
+    final byte[] response = new byte[httpHeaders.length + contentLength];
 
     System.arraycopy(httpHeaders, 0, response, 0, httpHeaders.length);
-    System.arraycopy(body, 0, response, httpHeaders.length, body.length);
+    if (body != null) {
+      System.arraycopy(body, 0, response, httpHeaders.length, contentLength);
+    }
     return response;
   }
 

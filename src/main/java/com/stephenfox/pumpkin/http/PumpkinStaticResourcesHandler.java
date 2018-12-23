@@ -8,7 +8,7 @@ import static com.stephenfox.pumpkin.http.Constants.TEXT_CSS;
 import static com.stephenfox.pumpkin.http.Constants.TEXT_HTML;
 import static com.stephenfox.pumpkin.http.Constants.TEXT_JS;
 import static com.stephenfox.pumpkin.http.Constants.TEXT_PLAIN;
-import static com.stephenfox.pumpkin.http.FileUtils.readAllBytes;
+import static com.stephenfox.pumpkin.http.FileUtil.readAllBytes;
 
 import java.io.File;
 import java.io.IOException;

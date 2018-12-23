@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
-class FileUtils {
+class FileUtil {
 
   private static final int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;
   private static final int DEFAULT_BUFFER_SIZE = 8192;
