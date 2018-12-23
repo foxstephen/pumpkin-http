@@ -35,17 +35,27 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
             LOGGER.warn("No handler found for resource {}", request.getResource());
             HttpResponse.response404(request).send();
           } else {
-            final Handler handler = handlerForPath.getValue();
-            request.setPathParams(handlerForPath.pathParams());
-            handler.handle(request);
+            invokeHandler(socket, request, handlerForPath);
           }
         } else {
-          HttpResponse.response400(new BadRequest(socket)).send();
+          HttpResponse.response400(new InternalRequest(socket)).send();
         }
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOGGER.error("", e);
+    }
+  }
+
+  private static void invokeHandler(
+      Socket socket, PumpkinHttpRequest request, PathMapper.Entry<Handler> handlerForPath) {
+    try {
+      final Handler handler = handlerForPath.getValue();
+      request.setPathParams(handlerForPath.pathParams());
+      handler.handle(request);
+    } catch (Exception e) {
+      LOGGER.trace("Exception occurred during handling, returning 500");
+      HttpResponse.response500(new InternalRequest(socket)).send();
     }
   }
 
@@ -61,11 +71,11 @@ class PumpkinHttpRequestProcessor implements HttpRequestProcessor {
   }
 
   // TODO: this is ugly.
-  private static class BadRequest implements HttpRequest {
+  private static class InternalRequest implements HttpRequest {
 
     private final Socket socket;
 
-    private BadRequest(Socket socket) {
+    private InternalRequest(Socket socket) {
       this.socket = socket;
     }
 

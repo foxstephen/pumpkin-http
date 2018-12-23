@@ -14,6 +14,8 @@ class Constants {
   static final String TEXT_JS = "text/javascript";
   static final String TEXT_CSS = "text/css";
   static final String IMAGE_X_ICON = "image/x-icon";
+  static final String IMAGE_PNG = "image/png";
+  static final String IMAGE_JPEG = "image/jpeg";
 
   static final String CLOSE = "close";
 

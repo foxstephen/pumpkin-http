@@ -21,8 +21,9 @@ class PumpkinHttpResponse implements HttpResponse {
   private OutputStream outputStream;
   private final Socket socket;
   private HttpHeaders headers;
-  private String body;
+  private byte[] body;
   private int code;
+  private int contentLength;
 
   PumpkinHttpResponse(HttpRequest request) {
     this.socket = request.getSocket();
@@ -35,6 +36,14 @@ class PumpkinHttpResponse implements HttpResponse {
 
   @Override
   public HttpResponse setBody(String body) {
+    this.contentLength = body.length();
+    this.body = body.getBytes();
+    return this;
+  }
+
+  @Override
+  public HttpResponse setBody(byte[] body) {
+    this.contentLength = body.length;
     this.body = body;
     return this;
   }
@@ -86,8 +95,14 @@ class PumpkinHttpResponse implements HttpResponse {
     if (code == 0) {
       code = 200;
     }
-    return ("HTTP/2.0 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n" + body)
-        .getBytes();
+
+    final byte[] httpHeaders =
+        ("HTTP/2.0 " + code + " " + reason(code) + "\r\n" + headers.format() + "\r\n").getBytes();
+    final byte[] response = new byte[httpHeaders.length + body.length];
+
+    System.arraycopy(httpHeaders, 0, response, 0, httpHeaders.length);
+    System.arraycopy(body, 0, response, httpHeaders.length, body.length);
+    return response;
   }
 
   private static String reason(int code) {
@@ -107,11 +122,7 @@ class PumpkinHttpResponse implements HttpResponse {
       headers = new PumpkinHttpHeaders();
     }
     if (headers.get(CONTENT_LENGTH) == null) {
-      if (body != null) {
-        headers.set(CONTENT_LENGTH, String.valueOf(body.length()));
-      } else {
-        headers.set(CONTENT_LENGTH, String.valueOf(0));
-      }
+      headers.set(CONTENT_LENGTH, String.valueOf(contentLength));
     }
 
     headers.set(CONNECTION, CLOSE);

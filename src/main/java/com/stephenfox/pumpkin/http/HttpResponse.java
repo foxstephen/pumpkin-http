@@ -22,6 +22,8 @@ public interface HttpResponse {
 
   HttpResponse setBody(String body);
 
+  HttpResponse setBody(byte[] body);
+
   HttpResponse setCode(int code);
 
   void send();
