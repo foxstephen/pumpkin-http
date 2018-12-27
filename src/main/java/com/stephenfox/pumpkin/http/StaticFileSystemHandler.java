@@ -1,5 +1,7 @@
 package com.stephenfox.pumpkin.http;
 
+import static com.stephenfox.pumpkin.http.Constants.CONTENT_TYPE;
+import static com.stephenfox.pumpkin.http.Constants.headerForFileFormat;
 import static com.stephenfox.pumpkin.http.FileUtil.readAllBytes;
 
 import java.io.File;
@@ -26,7 +28,9 @@ class StaticFileSystemHandler implements Handler {
     final File file = new File(directory + filename);
     try {
       final byte[] fileContents = readFile(file);
-      HttpResponse.forRequest(httpRequest).setBody(fileContents).send();
+      final HttpHeaders httpHeaders = new PumpkinHttpHeaders();
+      httpHeaders.set(CONTENT_TYPE, headerForFileFormat(file.getName()));
+      HttpResponse.forRequest(httpRequest).setBody(fileContents).setHeaders(httpHeaders).send();
     } catch (IOException e) {
       if (e instanceof FileNotFoundException) {
         LOGGER.info("File does not exist {}", file.getAbsolutePath(), e);
