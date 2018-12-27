@@ -1,5 +1,6 @@
 package com.stephenfox.pumpkin.http;
 
+import static com.stephenfox.pumpkin.http.Constants.BAD_REQUEST;
 import static com.stephenfox.pumpkin.http.Constants.CLOSE;
 import static com.stephenfox.pumpkin.http.Constants.CONNECTION;
 import static com.stephenfox.pumpkin.http.Constants.CONTENT_LENGTH;
@@ -114,6 +115,8 @@ class PumpkinHttpResponse implements HttpResponse {
       return OK;
     } else if (code == 500) {
       return INTERNAL_SERVER_ERROR;
+    } else if (code == 400) {
+      return BAD_REQUEST;
     } else {
       return NO_REASON;
     }

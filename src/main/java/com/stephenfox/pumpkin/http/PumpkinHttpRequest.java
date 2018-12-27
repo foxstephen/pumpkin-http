@@ -35,10 +35,10 @@ class PumpkinHttpRequest implements HttpRequest {
           new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
       // Parse the request line.
-      final String[] parsedRequestLine = parseRequestLine(reader);
-      method = HttpMethod.valueOf(parsedRequestLine[0]);
-      resource = parsedRequestLine[1];
-      version = parsedRequestLine[2];
+      final Object[] parsedRequestLine = parseRequestLine(reader);
+      method = (HttpMethod) parsedRequestLine[0];
+      resource = (String) parsedRequestLine[1];
+      version = (String) parsedRequestLine[2];
 
       // Parse the headers.
       headers = parseHeaders(reader);
@@ -52,7 +52,7 @@ class PumpkinHttpRequest implements HttpRequest {
     return new PumpkinHttpRequest(socket, version, method, headers, resource, body);
   }
 
-  private static String[] parseRequestLine(BufferedReader reader)
+  private static Object[] parseRequestLine(BufferedReader reader)
       throws IOException, InvalidHttpRequestException {
     // Parse the request line.
     final String requestLine = reader.readLine();
@@ -64,7 +64,16 @@ class PumpkinHttpRequest implements HttpRequest {
       throw new InvalidHttpRequestException(
           "Invalid request line " + Arrays.toString(parsedRequestLine));
     }
-    return parsedRequestLine;
+
+    final Object[] items = new Object[3];
+    try {
+      items[0] = HttpMethod.valueOf(parsedRequestLine[0]);
+      items[1] = parsedRequestLine[1];
+      items[2] = parsedRequestLine[2];
+    } catch (IllegalArgumentException e) {
+      throw new InvalidHttpRequestException(e);
+    }
+    return items;
   }
 
   private static String parseBody(HttpHeaders headers, BufferedReader reader) throws IOException {
