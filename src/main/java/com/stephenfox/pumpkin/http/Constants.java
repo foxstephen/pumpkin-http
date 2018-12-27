@@ -52,4 +52,23 @@ class Constants {
           + "//     \"$ooo $$o$   $$$$$$$$$$$$$$$$ $$$$$$$$o\"\n"
           + "//        \"\" $$$$$$$$$$$$$$$$$$$$$$\" \"\"\"\"\n"
           + "//                         \"\"\"\"\"\"";
+
+  static String headerForFileFormat(String filename) {
+    // Probably not the best way of doing this.
+    if (filename.contains(".css")) {
+      return TEXT_CSS;
+    } else if (filename.contains(".js")) {
+      return TEXT_JS;
+    } else if (filename.contains(".html")) {
+      return TEXT_HTML;
+    } else if (filename.contains(".ico")) {
+      return IMAGE_X_ICON;
+    } else if (filename.contains(".png")) {
+      return IMAGE_PNG;
+    } else if (filename.contains(".jpeg") || filename.contains(".jpg")) {
+      return IMAGE_JPEG;
+    } else {
+      return TEXT_PLAIN;
+    }
+  }
 }

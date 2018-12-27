@@ -8,6 +8,7 @@ import static com.stephenfox.pumpkin.http.Constants.TEXT_CSS;
 import static com.stephenfox.pumpkin.http.Constants.TEXT_HTML;
 import static com.stephenfox.pumpkin.http.Constants.TEXT_JS;
 import static com.stephenfox.pumpkin.http.Constants.TEXT_PLAIN;
+import static com.stephenfox.pumpkin.http.Constants.headerForFileFormat;
 import static com.stephenfox.pumpkin.http.FileUtil.readAllBytes;
 
 import java.io.File;
@@ -18,14 +19,13 @@ import java.nio.file.NoSuchFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PumpkinStaticResourcesHandler implements Handler {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(PumpkinStaticResourcesHandler.class);
+class StaticResourceHandler implements Handler {
+  private static final Logger LOGGER = LoggerFactory.getLogger(StaticHandler.class);
+  private final String path;
   private final String directory;
   private final ClassLoader classLoader;
-  private final String path;
 
-  public PumpkinStaticResourcesHandler(String path, String directory) {
+  StaticResourceHandler(String path, String directory) {
     this.path = path;
     this.directory = directory;
     this.classLoader = getClass().getClassLoader();
@@ -40,7 +40,7 @@ public class PumpkinStaticResourcesHandler implements Handler {
     try {
       final byte[] resourceContents = readResource(resourcePath);
       final HttpHeaders httpHeaders = new PumpkinHttpHeaders();
-      httpHeaders.set(CONTENT_TYPE, fileFormatHeader(fileName));
+      httpHeaders.set(CONTENT_TYPE, headerForFileFormat(fileName));
       HttpResponse.forRequest(httpRequest).setBody(resourceContents).setHeaders(httpHeaders).send();
     } catch (Exception e) {
       if (e instanceof NoSuchFileException) {
@@ -75,24 +75,5 @@ public class PumpkinStaticResourcesHandler implements Handler {
     // To implement handling for much larger files shouldn't be
     // a massive undertaking.
     return readAllBytes(resourcesStream);
-  }
-
-  private static String fileFormatHeader(String filename) {
-    // Probably not the best way of doing this.
-    if (filename.contains(".css")) {
-      return TEXT_CSS;
-    } else if (filename.contains(".js")) {
-      return TEXT_JS;
-    } else if (filename.contains(".html")) {
-      return TEXT_HTML;
-    } else if (filename.contains(".ico")) {
-      return IMAGE_X_ICON;
-    } else if (filename.contains(".png")) {
-      return IMAGE_PNG;
-    } else if (filename.contains(".jpeg") || filename.contains(".jpg")) {
-      return IMAGE_JPEG;
-    } else {
-      return TEXT_PLAIN;
-    }
   }
 }
