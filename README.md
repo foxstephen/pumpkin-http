@@ -106,14 +106,14 @@ Pumpkin.httpServer("127.0.0.1", 8080, new BlogService())
 ```
 
 ```java
-// For any requests matching /static/.* find the at resources/static/ in the .jar file.
+// For any requests matching /static/.* find them at resources/static/ in the .jar file.
 Pumpkin.httpServer("127.0.0.1", 8080, new BlogService())
     .addHandler(new StaticHandler("/static/.*", "static/"))
     .start();
 ```
 
 ```java
-// For any requests matching /images/.* find the at /etc/images on the filesystem.
+// For any requests matching /images/.* find them at /etc/images on the filesystem.
 Pumpkin.httpServer("127.0.0.1", 8080, new BlogService())
     .addHandler(new StaticHandler("/images/.*", "/etc/images/", true)) 
     .start();
