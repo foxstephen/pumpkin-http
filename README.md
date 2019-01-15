@@ -1,6 +1,6 @@
 # pumpkin-http
 
-A micro-http framework for Java. Developed mostly for my own web needs - using zero external/ third party dependencies (well, apart from logger). I mostly add features on an as need basis, I've developed up to a point to where I can use this for my own personal use   (I'm currently using it to run my own website foxstephen.net) and further development will most likely be based on this.
+A micro-http framework for Java. Developed mostly for my own web needs - using zero external/ third party dependencies (well, apart from logger). I mostly add features on an as need basis, I've developed up to a point to where I can use this for my own personal use   (I'm currently using it to run my own website [foxstephen.net](foxstephen.net)) and further development will most likely be based on this.
 
                  ooo
                              $ o$
